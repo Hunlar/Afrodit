@@ -4,6 +4,7 @@ import glob
 import json
 import subprocess
 import threading
+import re
 from flask import Flask, request, jsonify, send_file, render_template
 
 app = Flask(__name__)
@@ -22,6 +23,24 @@ PROGRESS_TEMPLATE = (
     '"speed":%(progress.speed)s,'
     '"eta":%(progress.eta)s}'
 )
+
+# YouTube on data-center IPs often answers "Sign in to confirm you're not a
+# bot" for the default web player client, which breaks every YouTube link
+# while other sites keep working.  Preferring player clients that YouTube
+# still serves without a login (android, web_embedded) fixes this.
+YOUTUBE_HOST_RE = re.compile(
+    r"^(?:https?://)?(?:www\.|m\.|music\.|gaming\.)?"
+    r"(?:youtube\.com|youtu\.be|youtube-nocookie\.com)(?::\d+)?(?:/|\?|$)",
+    re.IGNORECASE,
+)
+YOUTUBE_EXTRA_ARGS = [
+    "--extractor-args", "youtube:player_client=android,web_embedded,web",
+]
+
+
+def _is_youtube_url(url: str) -> bool:
+    """Return True when the URL points at any YouTube host."""
+    return bool(YOUTUBE_HOST_RE.match(url.strip()))
 
 
 def run_download(job_id, url, format_choice, format_id):
@@ -53,6 +72,9 @@ def _do_download(job_id, url, format_choice, format_id):
         "--fragment-retries", "10",
         "--throttled-rate", "50K",
     ]
+
+    if _is_youtube_url(url):
+        cmd += YOUTUBE_EXTRA_ARGS
 
     if format_choice == "audio":
         cmd += ["-x", "--audio-format", "mp3"]
@@ -240,6 +262,9 @@ def get_info():
         return jsonify({"error": "No URL provided"}), 400
 
     cmd = ["yt-dlp", "--no-playlist", "-j", url]
+    if _is_youtube_url(url):
+        cmd += YOUTUBE_EXTRA_ARGS
+
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
         if result.returncode != 0:
