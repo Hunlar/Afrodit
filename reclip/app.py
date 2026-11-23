@@ -131,7 +131,7 @@ def _do_download(job_id, url, format_choice, format_id):
     out_template = os.path.join(DOWNLOAD_DIR, f"{job_id}.%(ext)s")
 
     cmd = [
-        "yt-dlp", "--no-playlist", "-o", out_template,
+        "yt-dlp", "--ignore-config", "--no-playlist", "-o", out_template,
         "--progress-template", PROGRESS_TEMPLATE,
         "--force-ipv4",
         "--downloader", "hls:ffmpeg",
@@ -149,12 +149,15 @@ def _do_download(job_id, url, format_choice, format_id):
         job["error"] = f"YouTube cookies alınamadı: {exc}"
         return
 
+    # Do not inherit a server-side yt-dlp config that may force an unavailable format.
+    # Prefer the requested quality when it still exists, then fall back to any
+    # available video+audio combination (or a combined format).
     if format_choice == "audio":
-        cmd += ["-x", "--audio-format", "mp3"]
+        cmd += ["-f", "bestaudio/best", "-x", "--audio-format", "mp3"]
     elif format_id:
-        cmd += ["-f", f"{format_id}+bestaudio/best", "--merge-output-format", "mp4"]
+        cmd += ["-f", f"{format_id}+bestaudio/bv*+ba/b", "--merge-output-format", "mp4"]
     else:
-        cmd += ["-f", "bv*[vcodec~='^(avc|h264)']+ba/b[vcodec~='^(avc|h264)']/bv*+ba/b", "--merge-output-format", "mp4"]
+        cmd += ["-f", "bv*+ba/b", "--merge-output-format", "mp4"]
 
     cmd.append(url)
 
@@ -334,7 +337,9 @@ def get_info():
     if not url:
         return jsonify({"error": "No URL provided"}), 400
 
-    cmd = ["yt-dlp", "--no-playlist", "-j"]
+    # --ignore-config prevents a global yt-dlp config from forcing a format
+    # that is not available for the requested YouTube video.
+    cmd = ["yt-dlp", "--ignore-config", "--no-playlist", "--no-warnings", "-j"]
     try:
         cmd += _get_youtube_cookie_args(url)
         cmd.append(url)
