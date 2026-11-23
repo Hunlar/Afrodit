@@ -1,0 +1,38 @@
+{
+  "name": "Afrodit",
+  "description": "Afrodit Telegram link downloader and management dashboard.",
+  "repository": "https://github.com/Hunlar/Afrodit",
+  "keywords": [
+    "telegram",
+    "downloader",
+    "afrodit",
+    "python",
+    "docker"
+  ],
+  "stack": "container",
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "env": {
+    "BOT_TOKEN": {
+      "description": "Afrodit Telegram bot token from BotFather.",
+      "required": true
+    },
+    "ADMIN_PASSWORD": {
+      "description": "Password for the Afrodit dashboard administrator account.",
+      "required": true
+    },
+    "ADMIN_USER": {
+      "description": "Dashboard administrator username.",
+      "value": "admin",
+      "required": false
+    },
+    "SECRET_KEY": {
+      "description": "Secret key used to sign dashboard sessions.",
+      "generator": "secret"
+    }
+  }
+}
