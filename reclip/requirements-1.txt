@@ -1,0 +1,3 @@
+Flask>=3.0.0
+# Keep yt-dlp and its matching EJS challenge scripts together for YouTube.
+yt-dlp[default]>=2026.10.26
