@@ -1,3 +1,4 @@
 Flask>=3.0.0
-# Keep yt-dlp and its matching EJS challenge scripts together for YouTube.
+# Full YouTube support needs yt-dlp's EJS challenge scripts and a JS runtime.
 yt-dlp[default]>=2026.10.26
+yt-dlp-ejs
