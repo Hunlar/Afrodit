@@ -1,6 +1,6 @@
 {
   "name": "Afrodit",
-  "description": "Afrodit Telegram link downloader and management dashboard.",
+  "description": "Afrodit Telegram media downloader and management dashboard.",
   "repository": "https://github.com/Hunlar/Afrodit",
   "keywords": [
     "telegram",
@@ -33,6 +33,10 @@
     "SECRET_KEY": {
       "description": "Secret key used to sign dashboard sessions.",
       "generator": "secret"
+    },
+    "YOUTUBE_COOKIES_URL": {
+      "description": "Optional private HTTPS URL to a Netscape-format YouTube cookies.txt file. Do not use a public link.",
+      "required": false
     }
   }
 }
