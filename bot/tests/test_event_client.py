@@ -47,3 +47,30 @@ def test_send_download_error_no_raise():
         job_id="job-1",
         error_message="Download timed out",
     ))
+
+def test_send_progress_uses_dashboard_event_name(monkeypatch):
+    from unittest.mock import patch
+
+    sent = []
+
+    class FakeClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        async def post(self, url, json):
+            sent.append(json)
+
+    with patch("event_client.httpx.AsyncClient", return_value=FakeClient()):
+        asyncio.run(event_client.send_progress(
+            job_id="job-progress",
+            percent=50,
+            speed=1000,
+            eta=10,
+            downloaded_bytes=500,
+            total_bytes=1000,
+        ))
+
+    assert sent[0]["type"] == "download_progress"
