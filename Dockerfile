@@ -5,10 +5,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
-# yt-dlp needs FFmpeg for merging/transcoding downloaded media.
+# yt-dlp needs FFmpeg for media processing and Deno + EJS for YouTube's
+# JavaScript challenge support.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends ffmpeg ca-certificates curl unzip \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh -s v2.3.0 \
+    && deno --version
 
 WORKDIR /app
 
